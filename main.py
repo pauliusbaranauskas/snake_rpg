@@ -1,6 +1,6 @@
 import pygame
 import sys
-
+import copy
 
 cell_size = 40
 cell_number = 20
@@ -81,24 +81,39 @@ class snake:
         return [self.x_pos, self.y_pos, self.cell_size, self.cell_size]
 
     def check_bounds(self, height, width):
-        print(self.x_pos, self.y_pos)
         if any([self.x_pos < 0, self.x_pos >= width, self.y_pos < 0, self.y_pos >= height]):
             end_game()
 
+    def __str__(self) -> str:
+        self.get_coordinates()
 
-blocks = [snake(x_pos, y_pos, x_step, y_step, cell_size)]
 
+blocks = [snake(x_pos+cell_size, y_pos, x_step, y_step, cell_size), snake(x_pos, y_pos, x_step, y_step, cell_size)]
+start = True
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             end_game()
+    
+        if event.type == pygame.KEYDOWN:
+            start = False
     screen.fill(pygame.Color("grey"))
-    
+
+    if not start:
+        blocks_new = []
+
+        head = copy.deepcopy(blocks[0])
+        head.update_speed(event)
+        head.check_bounds(*screen.get_size())
+
+        blocks_new.append(head)
+
+        tail = copy.deepcopy(blocks[:-1])
+        blocks_new.extend(tail)
+        blocks = copy.deepcopy(blocks_new)
+
     for block in blocks:
-        block.update_speed(event)
-        block.check_bounds(*screen.get_size())
         pygame.draw.rect(screen, pygame.Color("green"), block.get_rect_tuple())
-    
 
 
 
