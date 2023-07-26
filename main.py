@@ -1,6 +1,8 @@
 import pygame
 import sys
-import copy
+
+from random import randint
+
 
 cell_size = 40
 cell_number = 20
@@ -31,97 +33,61 @@ clock = pygame.time.Clock()
 x_pos = 0
 y_pos = 0
 
-x_step = 0
+x_step = cell_size
 y_step = 0
+
+
 def end_game():
     pygame.quit()
     sys.exit()
 
-class snake:
-    def __init__(self, x_pos, y_pos, x_step, y_step, cell_size):
-        self.cell_size = cell_size
-        self.x_pos, self.y_pos = x_pos, y_pos
-        self.x_step, self.y_step = x_step, y_step
+food = pygame.Rect(randint(0, cell_number)*cell_size, randint(0, cell_number)*cell_size, cell_size, cell_size)
 
-    def update_speed(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                if self.y_step == -self.cell_size:
-                    end_game()
-                else:
-                    self.x_step, self.y_step = 0, self.cell_size
-                    # x_step = 0
-            elif event.key == pygame.K_UP:
-                if self.y_step == self.cell_size:
-                    end_game()
-                else:
-                    self.x_step, self.y_step = 0, -self.cell_size
-            elif event.key == pygame.K_RIGHT:
-                if self.x_step == -self.cell_size:
-                    end_game()
-                else:
-                    self.x_step, self.y_step = self.cell_size, 0
-            elif event.key == pygame.K_LEFT:
-                if self.x_step == self.cell_size:
-                    end_game()
-                else:
-                    self.x_step, self.y_step = -self.cell_size, 0
-
-        self.x_pos += self.x_step
-        self.y_pos += self.y_step
-        self.check_bounds(width, height)
-
-    def get_coordinates(self):
-        return self.x_pos, self.y_pos
-    
-    def get_speed(self):
-        return self.x_step, self.y_step
-
-    def get_rect_tuple(self):
-        return [self.x_pos, self.y_pos, self.cell_size, self.cell_size]
-
-    def check_bounds(self, height, width):
-        if any([self.x_pos < 0, self.x_pos >= width, self.y_pos < 0, self.y_pos >= height]):
-            end_game()
-
-    def __str__(self) -> str:
-        return f"""
-x           {self.x_pos}
-y           {self.y_pos}
-x_step      {self.x_step}
-y_step      {self.y_step}
-cell_size   {self.cell_size}
-"""
-
-
-blocks = [snake(x_pos+cell_size, y_pos, x_step, y_step, cell_size), snake(x_pos, y_pos, x_step, y_step, cell_size)]
-start = True
+blocks = [pygame.Rect(x_pos+cell_size, y_pos, cell_size, cell_size),pygame.Rect(x_pos, y_pos, cell_size, cell_size)]
 while True:
+    snake_length = len(blocks)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             end_game()
-    
-        if event.type == pygame.KEYDOWN:
-            start = False
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_DOWN:
+                if y_step == -cell_size:
+                    end_game()
+                else:
+                    x_step, y_step = 0, cell_size
+            elif event.key == pygame.K_LEFT:
+                if x_step == cell_size:
+                    end_game()
+                else:
+                    x_step, y_step = -cell_size, 0
+            elif event.key == pygame.K_UP:
+                if y_step == cell_size:
+                    end_game()
+                else:
+                    x_step, y_step = 0, -cell_size
+            elif event.key == pygame.K_RIGHT:
+                if x_step == -cell_size:
+                    end_game()
+                else:
+                    x_step, y_step = cell_size, 0
+
     screen.fill(pygame.Color("grey"))
 
-    if not start:
-        blocks_new = []
+    for i, block in enumerate(reversed(blocks)):
+        if i == len(blocks)-1:
+            block.move_ip(x_step, y_step)
 
-        head = copy.deepcopy(blocks[0])
-        head.update_speed(event)
-        head.check_bounds(*screen.get_size())
+        else:
+            block.move_ip(blocks[-i-2].left-block.left, blocks[-i-2].top-block.top)
 
-        blocks_new.append(head)
-
-        tail = copy.deepcopy(blocks[:-1])
-        blocks_new.extend(tail)
-        blocks = copy.deepcopy(blocks_new)
-
-    for block in blocks:
-        pygame.draw.rect(screen, pygame.Color("green"), block.get_rect_tuple())
+        if any([block.left < 0, block.right > width, block.top < 0, block.bottom > height]):
+            end_game()
+        pygame.draw.rect(screen, pygame.Color("green"), block)
 
 
+
+    pygame.draw.rect(screen, pygame.Color("red"), food)
 
     pygame.display.update()
 
