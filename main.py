@@ -85,7 +85,13 @@ class snake:
             end_game()
 
     def __str__(self) -> str:
-        self.get_coordinates()
+        return f"""
+x           {self.x_pos}
+y           {self.y_pos}
+x_step      {self.x_step}
+y_step      {self.y_step}
+cell_size   {self.cell_size}
+"""
 
 
 blocks = [snake(x_pos+cell_size, y_pos, x_step, y_step, cell_size), snake(x_pos, y_pos, x_step, y_step, cell_size)]
