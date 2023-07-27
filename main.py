@@ -94,6 +94,7 @@ while True:
         if any([block.left < 0, block.right > width, block.top < 0, block.bottom > height]):
             end_game()
         pygame.draw.rect(screen, pygame.Color("brown"), block)
+        pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
 
     pygame.draw.rect(screen, pygame.Color("red"), food)
 
