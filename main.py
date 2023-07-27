@@ -13,22 +13,8 @@ framerate = 10
 
 pygame.init()
 
-# Display is display surface.
-# There can be only one display surface.
-# It is a canvas for entire game.
-screen = pygame.display.set_mode((height, width))
+screen = pygame.display.set_mode((height, width+cell_size))
 
-# Surfaces are layers that can display graphics. There are multiple surfaces.
-# It is not displayed by default.
-# You first need to create a surface. Then you need to display it.
-
-# Ways to create a surface:
-# 1. Import image.
-# 2. Creating any text.
-# 3. Create empty surface.
-
-
-# Clock object reikalingas, kad apriboti fps.
 clock = pygame.time.Clock()
 x_pos = 0
 y_pos = 0
@@ -36,6 +22,7 @@ y_pos = 0
 x_step = cell_size
 y_step = 0
 
+score = 0
 
 def end_game():
     pygame.quit()
@@ -44,6 +31,9 @@ def end_game():
 food = pygame.Rect(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
 
 blocks = [pygame.Rect(x_pos+cell_size, y_pos, cell_size, cell_size),pygame.Rect(x_pos, y_pos, cell_size, cell_size)]
+
+font = pygame.font.SysFont("Arial", 20)
+
 while True:
     snake_length = len(blocks)
     for event in pygame.event.get():
@@ -80,23 +70,38 @@ while True:
             if pygame.Rect.colliderect(block, food):
                 food.update(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
 
+                score += 1
+
+
                 while food.collidelist(blocks) > -1:
                     food.update(randint(0, cell_number - 1) * cell_size, randint(0, cell_number - 1) * cell_size, cell_size, cell_size)
+                print(score)
 
                 blocks.append(blocks[-1].copy())
 
             elif block.collidelist(blocks[1:]) > -1:
                 end_game()
-
         else:
             block.move_ip(blocks[-i-2].left-block.left, blocks[-i-2].top-block.top)
 
+
+
         if any([block.left < 0, block.right > width, block.top < 0, block.bottom > height]):
             end_game()
+
+
+
         pygame.draw.rect(screen, pygame.Color("brown"), block)
         pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
 
+    score_rect = pygame.draw.rect(screen, pygame.Color("orange"), (0, height, width, cell_size))
+
+    font_block = font.render(score.__str__(), True, pygame.Color("black"))
+    screen.blit(font_block, score_rect)
+
     pygame.draw.rect(screen, pygame.Color("red"), food)
+
+    pygame.draw.rect(screen, pygame.Color("orange"), (height, 0, width, cell_size))
 
     pygame.display.update()
 
