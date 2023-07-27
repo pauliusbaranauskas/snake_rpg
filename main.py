@@ -9,7 +9,7 @@ cell_number = 20
 
 height = cell_number * cell_size
 width = cell_number * cell_size
-framerate = 12
+framerate = 10
 
 pygame.init()
 
@@ -41,8 +41,8 @@ def end_game():
     pygame.quit()
     sys.exit()
 
-food = pygame.Rect(randint(0, cell_number)*cell_size, randint(0, cell_number)*cell_size, cell_size, cell_size)
-
+food = pygame.Rect(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
+print(food)
 blocks = [pygame.Rect(x_pos+cell_size, y_pos, cell_size, cell_size),pygame.Rect(x_pos, y_pos, cell_size, cell_size)]
 while True:
     snake_length = len(blocks)
@@ -77,6 +77,10 @@ while True:
     for i, block in enumerate(reversed(blocks)):
         if i == len(blocks)-1:
             block.move_ip(x_step, y_step)
+            if pygame.Rect.colliderect(block, food):
+                food.update(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
+
+                blocks.append(blocks[-1].copy())
 
         else:
             block.move_ip(blocks[-i-2].left-block.left, blocks[-i-2].top-block.top)
@@ -84,8 +88,6 @@ while True:
         if any([block.left < 0, block.right > width, block.top < 0, block.bottom > height]):
             end_game()
         pygame.draw.rect(screen, pygame.Color("green"), block)
-
-
 
     pygame.draw.rect(screen, pygame.Color("red"), food)
 
