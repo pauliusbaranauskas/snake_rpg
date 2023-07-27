@@ -80,7 +80,11 @@ while True:
             if pygame.Rect.colliderect(block, food):
                 food.update(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
 
+                while food.collidelist(blocks) > -1:
+                    food.update(randint(0, cell_number - 1) * cell_size, randint(0, cell_number - 1) * cell_size, cell_size, cell_size)
+
                 blocks.append(blocks[-1].copy())
+
             elif block.collidelist(blocks[1:]) > -1:
                 end_game()
 
