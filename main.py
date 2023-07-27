@@ -2,35 +2,53 @@ import pygame
 import sys
 
 from random import randint
+import json
+
+import os
 
 
-cell_size = 40
-cell_number = 20
+def end_game():
+    pygame.quit()
+    sys.exit()
+
+
+def read_settings():
+    file_path = os.path.realpath(__file__)
+    sep = os.path.sep
+    file_path = file_path.split(sep)
+    file_path = file_path[:-1]
+    file_path.append("snake settings.json")
+    file_path = sep.join(file_path)
+    with open(file_path) as f:
+        settings = f.read()
+        settings = json.loads(settings)
+
+    framerate = settings["speed"]
+    cell_size = settings["cell_size"]
+    cell_number = settings["cell_number"]
+
+    return framerate, cell_size, cell_number
+
+
+framerate, cell_size, cell_number = read_settings()
 
 height = cell_number * cell_size
 width = cell_number * cell_size
-framerate = 10
 
 pygame.init()
 
 screen = pygame.display.set_mode((height, width+cell_size))
 
 clock = pygame.time.Clock()
-x_pos = 0
-y_pos = 0
-
 x_step = cell_size
 y_step = 0
 
 score = 0
 
-def end_game():
-    pygame.quit()
-    sys.exit()
 
 food = pygame.Rect(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
 
-blocks = [pygame.Rect(x_pos+cell_size, y_pos, cell_size, cell_size),pygame.Rect(x_pos, y_pos, cell_size, cell_size)]
+blocks = [pygame.Rect(0+cell_size, 0, cell_size, cell_size),pygame.Rect(0, 0, cell_size, cell_size)]
 
 font = pygame.font.SysFont("Arial", 20)
 
