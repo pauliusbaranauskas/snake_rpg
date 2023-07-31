@@ -30,6 +30,31 @@ def read_settings():
     return framerate, cell_size, cell_number
 
 
+def direction(event, cell_size, x_step, y_step):
+    if event.key == pygame.K_DOWN:
+        if y_step == -cell_size:
+            x_step, y_step = -1, -1
+        else:
+            x_step, y_step = 0, cell_size
+    elif event.key == pygame.K_LEFT:
+        if x_step == cell_size:
+            x_step, y_step =  -1, -1
+        else:
+            x_step, y_step = -cell_size, 0
+    elif event.key == pygame.K_UP:
+        if y_step == cell_size:
+            x_step, y_step =  -1, -1
+        else:
+            x_step, y_step = 0, -cell_size
+    elif event.key == pygame.K_RIGHT:
+        if x_step == -cell_size:
+            x_step, y_step =  -1, -1
+        else:
+            x_step, y_step = cell_size, 0
+
+    return x_step, y_step
+
+
 def play_game(screen, cell_size, cell_number, font):
         
     x_step = cell_size
@@ -46,26 +71,9 @@ def play_game(screen, cell_size, cell_number, font):
                 end_game()
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
-                    if y_step == -cell_size:
-                        return score
-                    else:
-                        x_step, y_step = 0, cell_size
-                elif event.key == pygame.K_LEFT:
-                    if x_step == cell_size:
-                        return score
-                    else:
-                        x_step, y_step = -cell_size, 0
-                elif event.key == pygame.K_UP:
-                    if y_step == cell_size:
-                        return score
-                    else:
-                        x_step, y_step = 0, -cell_size
-                elif event.key == pygame.K_RIGHT:
-                    if x_step == -cell_size:
-                        return score
-                    else:
-                        x_step, y_step = cell_size, 0
+                x_step, y_step = direction(event, cell_size, x_step, y_step)
+                if x_step == y_step:
+                    return score
 
         screen.fill(pygame.Color("grey"))
 
@@ -79,7 +87,6 @@ def play_game(screen, cell_size, cell_number, font):
 
                     while food.collidelist(blocks) > -1:
                         food.update(randint(0, cell_number - 1) * cell_size, randint(0, cell_number - 1) * cell_size, cell_size, cell_size)
-                    print(score)
 
                     blocks.append(blocks[-1].copy())
 
@@ -94,7 +101,6 @@ def play_game(screen, cell_size, cell_number, font):
             pygame.draw.rect(screen, pygame.Color("brown"), block)
             pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
 
-
         score_rect = pygame.draw.rect(screen, pygame.Color("orange"), (0, height, width, cell_size))
 
         font_block = font.render(score.__str__(), True, pygame.Color("black"))
@@ -107,8 +113,6 @@ def play_game(screen, cell_size, cell_number, font):
         pygame.display.update()
         clock.tick(framerate)
 
-    return score
-
 
 def show_start_screen(screen):
     while True:
@@ -118,13 +122,11 @@ def show_start_screen(screen):
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pos = event.pos
-                print(pos)
-                print(start_rectangle)
                 if start_rectangle.collidepoint(pos):
-                    return False
+                    return "GAME"
 
             elif event.type == pygame.KEYDOWN:
-                return False
+                return "GAME"
 
         screen.fill(pygame.Color("grey"))
         start_button = start_font.render("start", True, pygame.Color("black"))
@@ -146,13 +148,13 @@ screen = pygame.display.set_mode((height, width+cell_size))
 start_font = pygame.font.SysFont("Arial", cell_size * 2)
 font = pygame.font.SysFont("Arial", 20)
 
-start_screen = True
+show_screen = "START"
 
 while True:
-    if start_screen:
-        start_screen = show_start_screen(screen)
+    if show_screen == "START":
+        show_screen = show_start_screen(screen)
 
         clock.tick(framerate)
-    else:
+    elif show_screen == "GAME":
         score = play_game(screen, cell_size, cell_number, font)
-        start_screen = True
+        show_screen = "START"
