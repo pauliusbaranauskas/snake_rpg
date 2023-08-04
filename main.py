@@ -8,11 +8,19 @@ import os
 
 
 def end_game():
+    """
+    Kills entire app.
+    """
     pygame.quit()
     sys.exit()
 
 
 def read_settings():
+    """Reads settings json file and returns settings as dictionary.
+
+    Returns:
+        dict: Settings dictionary.
+    """
     file_path = os.path.realpath(__file__)
     sep = os.path.sep
     file_path = file_path.split(sep)
@@ -25,6 +33,17 @@ def read_settings():
 
 
 def direction(event, cell_size, x_step, y_step):
+    """Updates snake movement direction by arrow button clicks.
+
+    Args:
+        event (pygame.event): Pygame event object.
+        cell_size (int): Size of cell. It describe step size.
+        x_step (int): Current snake movement speed in horizontal direction.
+        y_step (int): Current snake movement speed in vertical direction.
+
+    Returns:
+        int, int: Updated snake movement speeds in horizontal and vertical directions.
+    """
     if event.key == pygame.K_DOWN:
         if y_step == -cell_size:
             x_step, y_step = -1, -1
@@ -50,7 +69,17 @@ def direction(event, cell_size, x_step, y_step):
 
 
 def play_game(screen, cell_size, cell_number, font):
-        
+    """Displays and updates game screen. Contains all game logic.
+
+    Args:
+        screen (pygame.display): Application screen.
+        cell_size (int): Snake block size.
+        cell_number (int): Number of game blocks.
+        font (pygame.font): Game font.
+
+    Returns:
+        int: Score when game is stopped.
+    """
     x_step = cell_size
     y_step = 0
     score = 0
@@ -109,6 +138,16 @@ def play_game(screen, cell_size, cell_number, font):
 
 
 def show_start_screen(screen, width, height):
+    """Displays start screen with all buttons.
+
+    Args:
+        screen (pygame.display): Application screen.
+        width (int): Game screen width in pixels.
+        height (int): Game height in pixels
+
+    Returns:
+        str: Next screen to display.
+    """
     start_screen_font = pygame.font.SysFont("Arial", cell_size * 2)
     start_button = start_screen_font.render("start", True, pygame.Color("black"))
 
@@ -143,6 +182,15 @@ def show_start_screen(screen, width, height):
 
 
 def get_number_input(event, number):
+    """Reads and updates numeric input in settings screen.
+
+    Args:
+        event (pygame.event): Pygame event.
+        number (str): Displayed number in setting rectangle.
+
+    Returns:
+        str, Bool: Updated displayed number and field status. True means field is still active and accepts inputs.
+    """
     if event.key == pygame.K_RETURN:
         return number, False
     elif event.key == pygame.K_BACKSPACE:
@@ -156,6 +204,14 @@ def get_number_input(event, number):
 
 
 def frame_activation(active):
+    """Reverses field status. True means field accepts new inputs, False - not anymore.
+
+    Args:
+        active (Bool): True - accepts inputs, False - does not accept.
+
+    Returns:
+        Bool: True - accepts inputs, False - does not accept.
+    """
     if active:
         return False
     else:
@@ -163,6 +219,14 @@ def frame_activation(active):
 
 
 def show_settings(screen, height, width, settings):
+    """Displays and contains all settings menu.
+
+    Args:
+        screen (pygame.display): Application screen.
+        height (int): Application hight in pixels.
+        width (int): Application width in pixels.
+        settings (dict): Settings dictionary.
+    """
     cell_size = settings["cell_size"].__str__()
     framerate = settings["speed"].__str__()
     cell_number = settings["cell_number"].__str__()
@@ -170,7 +234,6 @@ def show_settings(screen, height, width, settings):
     framerate_active = False
     cell_size_active = False
     cell_number_active = False
-
 
     while True:
 
@@ -192,14 +255,10 @@ def show_settings(screen, height, width, settings):
         cell_number_input_rect = pygame.Rect(cell_number_text.get_rect(topleft=cell_number_rect.topright))
         cell_number_input_rect.height = int(cell_size)
 
-
         screen.fill(pygame.Color("grey"))
         pygame.draw.rect(screen, pygame.Color("grey"), framerate_rect)
         pygame.draw.rect(screen, pygame.Color("grey"), cell_size_rect)
         pygame.draw.rect(screen, pygame.Color("grey"), cell_number_rect)
-
-
-
 
         if framerate_active:
             pygame.draw.rect(screen, pygame.Color("blue"), framerate_input_rect)
@@ -223,6 +282,7 @@ def show_settings(screen, height, width, settings):
         screen.blit(cell_number_text, cell_number_rect)
         screen.blit(cell_number_input_text, cell_number_input_rect)
 
+        save_button_text = settings_font.render("CANCEL", True, pygame.Color("black"))
 
         pygame.display.update()
 
@@ -255,7 +315,6 @@ def show_settings(screen, height, width, settings):
                     cell_number_active = frame_activation(cell_number_active)
                     framerate_active = False
                     cell_size_active = False
-
 
 
 settings = read_settings()
