@@ -1,4 +1,6 @@
 import pygame
+import pygame_menu as pm
+
 import sys
 
 from random import randint
@@ -68,25 +70,33 @@ def direction(event, cell_size, x_step, y_step):
     return x_step, y_step
 
 
-def play_game(screen, cell_size, cell_number, font):
+def play_game():
     """Displays and updates game screen. Contains all game logic.
 
     Args:
         screen (pygame.display): Application screen.
-        cell_size (int): Snake block size.
-        cell_number (int): Number of game blocks.
-        font (pygame.font): Game font.
+        setting (dict): dictionary containing game settings.
 
     Returns:
         int: Score when game is stopped.
     """
+    settings = read_settings()
+
+    cell_size = settings["cell_size"]
+    cell_number = settings["cell_number"]
+    height = cell_number * cell_size
+    width = cell_number * cell_size
     x_step = cell_size
     y_step = 0
     score = 0
 
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((height, width + cell_size))
+
     food = pygame.Rect(randint(0, cell_number-1)*cell_size, randint(0, cell_number-1)*cell_size, cell_size, cell_size)
 
     blocks = [pygame.Rect(0+cell_size, 0, cell_size, cell_size),pygame.Rect(0, 0, cell_size, cell_size)]
+    font = pygame.font.SysFont("Arial", 20)
 
     while True:
         for event in pygame.event.get():
@@ -137,50 +147,6 @@ def play_game(screen, cell_size, cell_number, font):
         clock.tick(framerate)
 
 
-def show_start_screen(screen, width, height):
-    """Displays start screen with all buttons.
-
-    Args:
-        screen (pygame.display): Application screen.
-        width (int): Game screen width in pixels.
-        height (int): Game height in pixels
-
-    Returns:
-        str: Next screen to display.
-    """
-    start_screen_font = pygame.font.SysFont("Arial", cell_size * 2)
-    start_button = start_screen_font.render("start", True, pygame.Color("black"))
-
-    settings_button = start_screen_font.render("settings", True, pygame.Color("black"))
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                end_game()
-
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                pos = event.pos
-                if start_rectangle.collidepoint(pos):
-                    return "GAME"
-
-                elif settings_rectangle.collidepoint(pos):
-                    return "SETTINGS"
-
-            elif event.type == pygame.KEYDOWN:
-                return "GAME"
-
-        screen.fill(pygame.Color("grey"))
-
-        start_rectangle = start_button.get_rect(center=(width // 2, height // 3))
-
-        screen.blit(start_button, start_rectangle)
-
-        settings_rectangle = settings_button.get_rect(center=(width//2, height//3*2))
-        screen.blit(settings_button, settings_rectangle)
-
-        pygame.display.update()
-
-
 def get_number_input(event, number):
     """Reads and updates numeric input in settings screen.
 
@@ -218,7 +184,7 @@ def frame_activation(active):
         return True
 
 
-def show_settings(screen, height, width, settings):
+def show_settings():
     """Displays and contains all settings menu.
 
     Args:
@@ -227,6 +193,12 @@ def show_settings(screen, height, width, settings):
         width (int): Application width in pixels.
         settings (dict): Settings dictionary.
     """
+    settings = read_settings()
+
+    height = settings["cell_number"] * settings["cell_size"]
+    width = settings["cell_number"] * settings["cell_size"]
+    screen = pygame.display.set_mode((width, height))
+
     cell_size = settings["cell_size"].__str__()
     framerate = settings["speed"].__str__()
     cell_number = settings["cell_number"].__str__()
@@ -317,33 +289,31 @@ def show_settings(screen, height, width, settings):
                     cell_size_active = False
 
 
-settings = read_settings()
+def show_main_menu():
+    settings = read_settings()
+    screen = pygame.display.set_mode((settings["cell_number"]*settings["cell_size"], settings["cell_number"]*settings["cell_size"]))
 
-framerate = settings["speed"]
-cell_size = settings["cell_size"]
-cell_number = settings["cell_number"]
+    main_menu = pm.Menu(title="Snake RPG"
+                        , width=settings["cell_number"]*settings["cell_size"]
+                        , height=settings["cell_number"]*settings["cell_size"])
 
-height = cell_number * cell_size
-width = cell_number * cell_size
+    main_menu.add.button(title="PLAY", font_color=(0, 0, 0), action=play_game)
 
-pygame.init()
-clock = pygame.time.Clock()
-screen = pygame.display.set_mode((height, width+cell_size))
-font = pygame.font.SysFont("Arial", 20)
+    main_menu.add.button(title="Settings", font_color=(0, 0, 0), action=show_settings)
+    main_menu.add.button(title="Quit", font_color=(0, 0, 0), action=pm.events.EXIT)
+
+    main_menu.mainloop(screen)
 
 show_screen = "START"
+pygame.init()
 
 while True:
     if show_screen == "START":
-        show_screen = show_start_screen(screen, height, width)
+        show_screen = show_main_menu()
 
-        clock.tick(framerate)
     elif show_screen == "GAME":
-        score = play_game(screen, cell_size, cell_number, font)
+        score = play_game()
         show_screen = "START"
 
     elif show_screen == "SETTINGS":
-        show_screen, settings = show_settings(screen, height, width, settings)
-        framerate = settings["speed"]
-        cell_size = settings["cell_size"]
-        cell_number = settings["cell_number"]
+        show_screen, settings = show_settings()
