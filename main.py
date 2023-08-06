@@ -84,6 +84,7 @@ def play_game():
 
     cell_size = settings["cell_size"]
     cell_number = settings["cell_number"]
+    framerate = settings["speed"]
     height = cell_number * cell_size
     width = cell_number * cell_size
     x_step = cell_size
@@ -101,12 +102,12 @@ def play_game():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                end_game()
+                show_main_menu()
 
             elif event.type == pygame.KEYDOWN:
                 x_step, y_step = direction(event, cell_size, x_step, y_step)
                 if x_step == y_step:
-                    return score
+                    show_main_menu()
 
         screen.fill(pygame.Color("grey"))
 
@@ -124,12 +125,12 @@ def play_game():
                     blocks.append(blocks[-1].copy())
 
                 elif block.collidelist(blocks[1:]) > -1:
-                    return score
+                    show_main_menu()
             else:
                 block.move_ip(blocks[-i-2].left-block.left, blocks[-i-2].top-block.top)
 
             if any([block.left < 0, block.right > width, block.top < 0, block.bottom > height]):
-                return score
+                show_main_menu()
 
             pygame.draw.rect(screen, pygame.Color("brown"), block)
             pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
@@ -185,109 +186,25 @@ def frame_activation(active):
 
 
 def show_settings():
-    """Displays and contains all settings menu.
-
-    Args:
-        screen (pygame.display): Application screen.
-        height (int): Application hight in pixels.
-        width (int): Application width in pixels.
-        settings (dict): Settings dictionary.
-    """
+    # https: // www.geeksforgeeks.org / create - settings - menu - in -python - pygame /
     settings = read_settings()
-
     height = settings["cell_number"] * settings["cell_size"]
     width = settings["cell_number"] * settings["cell_size"]
+    framerate = settings["speed"]
+
     screen = pygame.display.set_mode((width, height))
 
-    cell_size = settings["cell_size"].__str__()
-    framerate = settings["speed"].__str__()
-    cell_number = settings["cell_number"].__str__()
-    settings_font = pygame.font.SysFont("Arial", int(cell_size))
-    framerate_active = False
-    cell_size_active = False
-    cell_number_active = False
+    settings_menu = pm.Menu(title="Settings", width=width, height=height)
 
-    while True:
+    settings_menu.add.text_input(title="Speed: ", default=str(framerate))
+    settings_menu.add.text_input(title="cell size: ", default=str(settings["cell_number"]))
+    settings_menu.add.text_input(title="Number of cells: ", default=str(settings["cell_size"]))
 
-        framerate_rect = pygame.Rect((width // 3, 0, width // 3, int(cell_size)))
-        framerate_text = settings_font.render("speed", True, pygame.Color("black"))
-        framerate_input_text = settings_font.render(framerate, True, pygame.Color("white"))
-        framerate_input_rect = pygame.Rect(framerate_text.get_rect(topleft=framerate_rect.topright))
-        framerate_input_rect.height = int(cell_size)
+    settings_menu.add.label("")
+    settings_menu.add.button(title="SAVE", font_color=(0, 0, 0), action=play_game)
+    settings_menu.add.button(title="Cancel", font_color=(0, 0, 0), action=show_main_menu)
 
-        cell_size_rect = pygame.Rect((width // 3, int(cell_size), width // 3, int(cell_size)))
-        cell_size_text = settings_font.render("cell size in pixels", True, pygame.Color("black"))
-        cell_size_input_text = settings_font.render(cell_size, True, pygame.Color("white"))
-        cell_size_input_rect = pygame.Rect(cell_size_text.get_rect(topleft=cell_size_rect.topright))
-        cell_size_input_rect.height = int(cell_size)
-
-        cell_number_rect = pygame.Rect((width // 3, int(cell_size)*2, width // 3, int(cell_size)))
-        cell_number_text = settings_font.render("cell count", True, pygame.Color("black"))
-        cell_number_input_text = settings_font.render(cell_number, True, pygame.Color("white"))
-        cell_number_input_rect = pygame.Rect(cell_number_text.get_rect(topleft=cell_number_rect.topright))
-        cell_number_input_rect.height = int(cell_size)
-
-        screen.fill(pygame.Color("grey"))
-        pygame.draw.rect(screen, pygame.Color("grey"), framerate_rect)
-        pygame.draw.rect(screen, pygame.Color("grey"), cell_size_rect)
-        pygame.draw.rect(screen, pygame.Color("grey"), cell_number_rect)
-
-        if framerate_active:
-            pygame.draw.rect(screen, pygame.Color("blue"), framerate_input_rect)
-        else:
-            pygame.draw.rect(screen, pygame.Color("blue4"), framerate_input_rect)
-
-        if cell_size_active:
-            pygame.draw.rect(screen, pygame.Color("blue"), cell_size_input_rect)
-        else:
-            pygame.draw.rect(screen, pygame.Color("blue4"), cell_size_input_rect)
-
-        if cell_number_active:
-            pygame.draw.rect(screen, pygame.Color("blue"), cell_number_input_rect)
-        else:
-            pygame.draw.rect(screen, pygame.Color("blue4"), cell_number_input_rect)
-
-        screen.blit(framerate_text, framerate_rect)
-        screen.blit(framerate_input_text, framerate_input_rect)
-        screen.blit(cell_size_text, cell_size_rect)
-        screen.blit(cell_size_input_text, cell_size_input_rect)
-        screen.blit(cell_number_text, cell_number_rect)
-        screen.blit(cell_number_input_text, cell_number_input_rect)
-
-        save_button_text = settings_font.render("CANCEL", True, pygame.Color("black"))
-
-        pygame.display.update()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                end_game()
-            elif event.type == pygame.KEYDOWN:
-                if framerate_active:
-                    framerate, framerate_active = get_number_input(event, framerate)
-
-                elif cell_size_active:
-                    cell_size, cell_size_active = get_number_input(event, cell_size)
-
-                elif cell_number_active:
-                    cell_number, cell_number_active = get_number_input(event, cell_number)
-
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                pos = event.pos
-                if framerate_input_rect.collidepoint(pos):
-                    framerate_active = frame_activation(framerate_active)
-                    cell_size_active = False
-                    cell_number_active = False
-
-                elif cell_size_input_rect.collidepoint(pos):
-                    cell_size_active = frame_activation(cell_size_active)
-                    framerate_active = False
-                    cell_number_active = False
-
-                elif cell_number_input_rect.collidepoint(pos):
-                    cell_number_active = frame_activation(cell_number_active)
-                    framerate_active = False
-                    cell_size_active = False
-
+    settings_menu.mainloop(screen)
 
 def show_main_menu():
     settings = read_settings()
@@ -304,16 +221,7 @@ def show_main_menu():
 
     main_menu.mainloop(screen)
 
-show_screen = "START"
+# show_screen = "SETTINGS"
 pygame.init()
 
-while True:
-    if show_screen == "START":
-        show_screen = show_main_menu()
-
-    elif show_screen == "GAME":
-        score = play_game()
-        show_screen = "START"
-
-    elif show_screen == "SETTINGS":
-        show_screen, settings = show_settings()
+show_screen = show_main_menu()
