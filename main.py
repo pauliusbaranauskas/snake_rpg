@@ -148,43 +148,6 @@ def play_game():
         clock.tick(framerate)
 
 
-def get_number_input(event, number):
-    """Reads and updates numeric input in settings screen.
-
-    Args:
-        event (pygame.event): Pygame event.
-        number (str): Displayed number in setting rectangle.
-
-    Returns:
-        str, Bool: Updated displayed number and field status. True means field is still active and accepts inputs.
-    """
-    if event.key == pygame.K_RETURN:
-        return number, False
-    elif event.key == pygame.K_BACKSPACE:
-        return number[:-1], True
-    elif event.unicode.isdigit():
-        return "".join([number.__str__(), event.unicode]), True
-    elif event.key == pygame.K_ESCAPE:
-        return number, False
-    else:
-        return number, True
-
-
-def frame_activation(active):
-    """Reverses field status. True means field accepts new inputs, False - not anymore.
-
-    Args:
-        active (Bool): True - accepts inputs, False - does not accept.
-
-    Returns:
-        Bool: True - accepts inputs, False - does not accept.
-    """
-    if active:
-        return False
-    else:
-        return True
-
-
 def show_settings():
     # https: // www.geeksforgeeks.org / create - settings - menu - in -python - pygame /
     settings = read_settings()
