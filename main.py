@@ -141,7 +141,7 @@ def play_game():
             elif event.type == pygame.KEYDOWN:
                 x_step, y_step = direction(event, settings.cell_size, x_step, y_step)
                 if x_step == y_step:
-                    show_main_menu()
+                    show_game_over(score)
 
         screen.fill(pygame.Color("grey"))
 
@@ -163,12 +163,12 @@ def play_game():
                     blocks.append(blocks[-1].copy())
 
                 elif block.collidelist(blocks[1:]) > -1:
-                    show_main_menu()
+                    show_game_over(score)
             else:
                 block.move_ip(blocks[-i - 2].left - block.left, blocks[-i - 2].top - block.top)
 
             if any([block.left < 0, block.right > settings.width, block.top < 0, block.bottom > settings.height]):
-                show_main_menu()
+                show_game_over(score)
 
             pygame.draw.rect(screen, pygame.Color("brown"), block)
             pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
@@ -194,15 +194,19 @@ def show_settings():
     screen = pygame.display.set_mode((settings.width, settings.height))
 
     settings_menu = pm.Menu(title="Settings", width=settings.width, height=settings.height)
-    settings_menu.add.text_input(title="Speed: ", default=str(settings.framerate), onchange=lambda value: settings.update_numeric("framerate", value))
+    settings_menu.add.text_input(title="Speed: ",
+                                 default=str(settings.framerate),
+                                 onchange=lambda value: settings.update_numeric("framerate", value)
+                                 )
 
     settings_menu.add.text_input(title="cell size: ", default=str(settings.cell_size), onchange=lambda value: settings.update_numeric("cell_size", value))
     settings_menu.add.text_input(title="Number of cells: ", default=str(settings.cell_number), onchange=lambda value: settings.update_numeric("cell_number", value))
 
     settings_menu.add.label("")
-    settings_menu.add.button(title="SAVE", font_color=(0, 0, 0), action=settings.save_settings)
-    settings_menu.add.button(title="Revert to last saved", font_color=(0, 0, 0), action=show_settings)
-    settings_menu.add.button(title="Cancel", font_color=(0, 0, 0), action=show_main_menu)
+    settings_menu.add.button(title="SAVE", action=settings.save_settings)
+    settings_menu.add.button(title="Revert to last saved", action=show_settings)
+    settings_menu.add.button(title="Cancel", action=show_main_menu)
+
 
     settings_menu.mainloop(screen)
 
@@ -215,15 +219,29 @@ def show_main_menu():
                         , width=settings.width
                         , height=settings.height)
 
-    main_menu.add.button(title="PLAY", font_color=(0, 0, 0), action=play_game)
+    main_menu.add.button(title="PLAY", action=play_game)
 
-    main_menu.add.button(title="Settings", font_color=(0, 0, 0), action=show_settings)
-    main_menu.add.button(title="Quit", font_color=(0, 0, 0), action=pm.events.EXIT)
+    main_menu.add.button(title="Settings", action=show_settings)
+    main_menu.add.button(title="Quit", action=pm.events.EXIT)
 
     main_menu.mainloop(screen)
 
+def show_game_over(score):
+    settings = Settings()
+    screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
+    game_over_menu = pm.Menu(title="GAME OVER", width=settings.width, height=settings.height)
 
-# show_screen = "SETTINGS"
+    game_over_menu.add.label("Your score:")
+
+    game_over_menu.add.label(score)
+    game_over_menu.add.label("")
+    game_over_menu.add.label("")
+
+    game_over_menu.add.button(title="Retry", action=play_game)
+    game_over_menu.add.button(title="QUIT", action=pm.events.EXIT)
+
+    game_over_menu.mainloop(screen)
+
 pygame.init()
 
-show_screen = show_main_menu()
+play_game()
