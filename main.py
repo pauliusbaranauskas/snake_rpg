@@ -219,6 +219,12 @@ def show_main_menu():
                         , width=settings.width
                         , height=settings.height)
 
+    main_menu.add.label("Current HIGH SCORE:")
+    main_menu.add.label(settings.high_score)
+    main_menu.add.label("")
+    main_menu.add.label("")
+    main_menu.add.label("")
+
     main_menu.add.button(title="PLAY", action=play_game)
 
     main_menu.add.button(title="Settings", action=show_settings)
@@ -230,18 +236,24 @@ def show_game_over(score):
     settings = Settings()
     screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
     game_over_menu = pm.Menu(title="GAME OVER", width=settings.width, height=settings.height)
-
-    game_over_menu.add.label("Your score:")
+    if score > settings.high_score:
+        settings.update_numeric("high_score", score)
+        settings.save_settings()
+        game_over_menu.add.label("New HIGH SCORE:")
+    else:
+        game_over_menu.add.label("Your score:")
 
     game_over_menu.add.label(score)
     game_over_menu.add.label("")
     game_over_menu.add.label("")
 
     game_over_menu.add.button(title="Retry", action=play_game)
+    game_over_menu.add.button(title="Main Menu", action=show_main_menu)
+
     game_over_menu.add.button(title="QUIT", action=pm.events.EXIT)
 
     game_over_menu.mainloop(screen)
 
 pygame.init()
 
-play_game()
+show_main_menu()
