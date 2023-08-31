@@ -9,14 +9,6 @@ import json
 import os
 
 
-def end_game():
-    """
-    Kills entire app.
-    """
-    pygame.quit()
-    sys.exit()
-
-
 def direction(event, cell_size, x_step, y_step):
     """Updates snake movement direction by arrow button clicks.
 
@@ -54,6 +46,9 @@ def direction(event, cell_size, x_step, y_step):
 
 
 class Settings():
+    """Class to read, update, save settings.
+    Takes everything from snake settings.json file and uses as attributes.
+    """
     cell_number: int
     cell_size: int
     framerate: int
@@ -63,6 +58,8 @@ class Settings():
         self.read_settings()
 
     def get_file_path(self):
+        """Gets path to settings file.
+        """
         file_path = os.path.realpath(__file__)
         sep = os.path.sep
         file_path = file_path.split(sep)
@@ -71,6 +68,9 @@ class Settings():
         self.file_path = sep.join(file_path)
 
     def read_settings(self):
+        """Reads settings from settings json.
+        By default, this file is located in game directory as "snake settings.json" file.
+        """
         with open(self.file_path) as f:
             settings = f.read()
             self.settings = json.loads(settings)
@@ -78,14 +78,29 @@ class Settings():
             setattr(self, key, value)
 
     def save_settings(self):
+        """Saves settings to settings json file.
+        By default, this file is located in game directory as "snake settings.json" file.
+        """
         with open(self.file_path, 'w') as f:
             json.dump(self.settings, f)
 
     def update(self, attr, value):
+        """Updates (or creates new) setting.
+
+        Args:
+            attr (str): Settings option/attribute.
+            value (any): Any value to add/update.
+        """
         self.settings[attr] = value
         setattr(self, attr, value)
 
     def update_numeric(self, attr, value):
+        """Updates (or creates new) setting integer value. If provided value is not numeric, then saves 0.
+
+        Args:
+            attr (str): attribute/setting name.
+            value (int): Integer value to add to settings.
+        """
         try:
             value = int(value)
         except ValueError:
@@ -94,13 +109,25 @@ class Settings():
 
     @property
     def height(self):
+        """Vertical size of game area in pixels.
+
+        Returns:
+            int: Vertical size of game area in pixels.
+        """
         return self.cell_number * self.cell_size
 
     @property
     def width(self):
+        """Horizontal size of game area in pixels.
+
+        Returns:
+            int: Horizontal size of game area in pixels.
+        """
         return self.cell_number * self.cell_size
 
     def revert(self):
+        """Resets settings to last saved value.
+        """
         self.__init__()
 
     def __str__(self):
@@ -188,6 +215,8 @@ def play_game():
 
 
 def show_settings():
+    """Displays settings (uses pygame_menu module).
+    """
     # https: // www.geeksforgeeks.org / create - settings - menu - in -python - pygame /
     settings = Settings()
 
@@ -212,6 +241,8 @@ def show_settings():
 
 
 def show_main_menu():
+    """Displays main menu (uses pygame_menu module).
+    """
     settings = Settings()
     screen = pygame.display.set_mode((settings.width, settings.height))
 
@@ -233,6 +264,11 @@ def show_main_menu():
     main_menu.mainloop(screen)
 
 def show_game_over(score):
+    """Displays GAME OVER screen with score and options to retry or quit.
+
+    Args:
+        score (int): Score of last game.
+    """
     settings = Settings()
     screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
     game_over_menu = pm.Menu(title="GAME OVER", width=settings.width, height=settings.height)
