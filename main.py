@@ -133,12 +133,28 @@ class Settings():
     def __str__(self):
         return self.settings.__str__()
 
+
+class Food():
+    def __init__(self, settings):
+        self.cell_number = settings.cell_number
+        self.cell_size = settings.cell_size
+        self.food_rect = pygame.Rect(self.generate_coordinates())
+
+    def generate_coordinates(self):
+        return randint(0, self.cell_number - 1) * self.cell_size, \
+            randint(0, self.cell_number - 1) * self.cell_size, \
+            self.cell_size, \
+            self.cell_size
+
+
+    def update(self, *args, **kwargs):
+        self.food_rect.update(*args, **kwargs)
+
+    def collidelist(self, rectangles):
+        return self.food_rect.collidelist(rectangles)
+
 def play_game():
     """Displays and updates game screen. Contains all game logic.
-
-    Args:
-        screen (pygame.display): Application screen.
-        setting (dict): dictionary containing game settings.
 
     Returns:
         int: Score when game is stopped.
@@ -152,10 +168,7 @@ def play_game():
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
 
-    food = pygame.Rect(randint(0, settings.cell_number - 1) * settings.cell_size,
-                       randint(0, settings.cell_number - 1) * settings.cell_size, settings.cell_size,
-                       settings.cell_size)
-
+    food = Food(settings)
     blocks = [pygame.Rect(0 + settings.cell_size, 0, settings.cell_size, settings.cell_size),
               pygame.Rect(0, 0, settings.cell_size, settings.cell_size)]
     font = pygame.font.SysFont("Arial", 20)
@@ -175,7 +188,7 @@ def play_game():
         for i, block in enumerate(reversed(blocks)):
             if i == len(blocks) - 1:
                 block.move_ip(x_step, y_step)
-                if pygame.Rect.colliderect(block, food):
+                if pygame.Rect.colliderect(block, food.food_rect):
                     food.update(randint(0, settings.cell_number - 1) * settings.cell_size,
                                 randint(0, settings.cell_number - 1) * settings.cell_size, settings.cell_size,
                                 settings.cell_size)
@@ -206,7 +219,7 @@ def play_game():
         font_block = font.render(score.__str__(), True, pygame.Color("black"))
         screen.blit(font_block, score_rect)
 
-        pygame.draw.rect(screen, pygame.Color("red"), food)
+        pygame.draw.rect(screen, pygame.Color("red"), food.food_rect)
 
         pygame.draw.rect(screen, pygame.Color("orange"), (settings.height, 0, settings.width, settings.cell_size))
 
