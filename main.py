@@ -64,6 +64,9 @@ class Settings():
         sep = os.path.sep
         file_path = file_path.split(sep)
         file_path = file_path[:-1]
+        assets_location = file_path.copy()
+        assets_location.extend(["assets", ""])
+        self.assets_location = sep.join(assets_location)
         file_path.append("snake settings.json")
         self.file_path = sep.join(file_path)
 
@@ -139,13 +142,17 @@ class Food():
         self.cell_number = settings.cell_number
         self.cell_size = settings.cell_size
         self.food_rect = pygame.Rect(self.generate_coordinates())
+        print(settings.assets_location)
+        self.img = pygame.image.load("".join([settings.assets_location, "mouse.png"]))
+        self.img.convert()
+
+
 
     def generate_coordinates(self):
         return randint(0, self.cell_number - 1) * self.cell_size, \
             randint(0, self.cell_number - 1) * self.cell_size, \
             self.cell_size, \
             self.cell_size
-
 
     def update(self, *args, **kwargs):
         self.food_rect.update(*args, **kwargs)
@@ -189,16 +196,12 @@ def play_game():
             if i == len(blocks) - 1:
                 block.move_ip(x_step, y_step)
                 if pygame.Rect.colliderect(block, food.food_rect):
-                    food.update(randint(0, settings.cell_number - 1) * settings.cell_size,
-                                randint(0, settings.cell_number - 1) * settings.cell_size, settings.cell_size,
-                                settings.cell_size)
+                    food.update(food.generate_coordinates())
 
                     score += 1
 
                     while food.collidelist(blocks) > -1:
-                        food.update(randint(0, settings.cell_number - 1) * settings.cell_size,
-                                    randint(0, settings.cell_number - 1) * settings.cell_size, settings.cell_size,
-                                    settings.cell_size)
+                        food.update(food.generate_coordinates())
 
                     blocks.append(blocks[-1].copy())
 
@@ -216,10 +219,12 @@ def play_game():
         score_rect = pygame.draw.rect(screen, pygame.Color("orange"),
                                       (0, settings.height, settings.width, settings.cell_size))
 
+        screen.blit(food.img, food.food_rect)
+
         font_block = font.render(score.__str__(), True, pygame.Color("black"))
         screen.blit(font_block, score_rect)
 
-        pygame.draw.rect(screen, pygame.Color("red"), food.food_rect)
+        pygame.draw.rect(screen, pygame.Color("grey"), food.food_rect, 1)
 
         pygame.draw.rect(screen, pygame.Color("orange"), (settings.height, 0, settings.width, settings.cell_size))
 
