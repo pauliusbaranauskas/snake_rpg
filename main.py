@@ -142,11 +142,8 @@ class Food():
         self.cell_number = settings.cell_number
         self.cell_size = settings.cell_size
         self.food_rect = pygame.Rect(self.generate_coordinates())
-        print(settings.assets_location)
         self.img = pygame.image.load("".join([settings.assets_location, "mouse.png"]))
         self.img.convert()
-
-
 
     def generate_coordinates(self):
         return randint(0, self.cell_number - 1) * self.cell_size, \
@@ -159,6 +156,26 @@ class Food():
 
     def collidelist(self, rectangles):
         return self.food_rect.collidelist(rectangles)
+
+
+class SnakeHead(pygame.Rect):
+    def __init__(self, settings, x_pos, y_pos):
+        self.settings = settings
+        self.angle = 0
+        self.head = pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)
+        self.img_original = pygame.image.load("".join([settings.assets_location, "head.png"]))
+        self.img_original.convert()
+        self.img = self.img_original.copy()
+
+    def rotate(self, x_step, y_step):
+        if x_step == self.settings.cell_size:
+            self.img = self.img_original.copy()
+        elif x_step == -self.settings.cell_size:
+            self.img = pygame.transform.rotate(self.img_original, 180)
+        elif y_step == -self.settings.cell_size:
+            self.img = pygame.transform.rotate(self.img_original, 90)
+        elif y_step == self.settings.cell_size:
+            self.img = pygame.transform.rotate(self.img_original, 270)
 
 def play_game():
     """Displays and updates game screen. Contains all game logic.
@@ -176,7 +193,8 @@ def play_game():
     screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
 
     food = Food(settings)
-    blocks = [pygame.Rect(0 + settings.cell_size, 0, settings.cell_size, settings.cell_size),
+    snake_head = SnakeHead(settings, 0+settings.cell_size, 0)
+    blocks = [snake_head.head,
               pygame.Rect(0, 0, settings.cell_size, settings.cell_size)]
     font = pygame.font.SysFont("Arial", 20)
 
@@ -187,6 +205,7 @@ def play_game():
 
             elif event.type == pygame.KEYDOWN:
                 x_step, y_step = direction(event, settings.cell_size, x_step, y_step)
+                snake_head.rotate(x_step, y_step)
                 if x_step == y_step:
                     show_game_over(score)
 
@@ -195,7 +214,7 @@ def play_game():
         for i, block in enumerate(reversed(blocks)):
             if i == len(blocks) - 1:
                 block.move_ip(x_step, y_step)
-                if pygame.Rect.colliderect(block, food.food_rect):
+                if pygame.Rect.colliderect(snake_head.head, food.food_rect):
                     food.update(food.generate_coordinates())
 
                     score += 1
@@ -207,14 +226,14 @@ def play_game():
 
                 elif block.collidelist(blocks[1:]) > -1:
                     show_game_over(score)
+                screen.blit(snake_head.img, snake_head.head)
+
             else:
                 block.move_ip(blocks[-i - 2].left - block.left, blocks[-i - 2].top - block.top)
-
+                pygame.draw.rect(screen, pygame.Color("brown"), block)
+                pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
             if any([block.left < 0, block.right > settings.width, block.top < 0, block.bottom > settings.height]):
                 show_game_over(score)
-
-            pygame.draw.rect(screen, pygame.Color("brown"), block)
-            pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
 
         score_rect = pygame.draw.rect(screen, pygame.Color("orange"),
                                       (0, settings.height, settings.width, settings.cell_size))
@@ -310,4 +329,4 @@ def show_game_over(score):
 
 pygame.init()
 
-show_main_menu()
+play_game()
