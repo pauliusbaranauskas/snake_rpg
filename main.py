@@ -161,7 +161,6 @@ class Food():
 class SnakeHead(pygame.Rect):
     def __init__(self, settings, x_pos, y_pos):
         self.settings = settings
-        self.angle = 0
         self.head = pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)
         self.img_original = pygame.image.load("".join([settings.assets_location, "head.png"]))
         self.img_original.convert()
@@ -176,6 +175,14 @@ class SnakeHead(pygame.Rect):
             self.img = pygame.transform.rotate(self.img_original, 90)
         elif y_step == self.settings.cell_size:
             self.img = pygame.transform.rotate(self.img_original, 270)
+
+class SnakeBody(pygame.Rect):
+
+    def __init__(self, settings, x_pos, y_pos):
+        self.settings = settings
+        self.body_block = pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)
+
+
 
 def play_game():
     """Displays and updates game screen. Contains all game logic.
@@ -194,8 +201,9 @@ def play_game():
 
     food = Food(settings)
     snake_head = SnakeHead(settings, 0+settings.cell_size, 0)
+    snake_body = SnakeBody(settings, 0, 0)
     blocks = [snake_head.head,
-              pygame.Rect(0, 0, settings.cell_size, settings.cell_size)]
+             snake_body.body_block]
     font = pygame.font.SysFont("Arial", 20)
 
     while True:
