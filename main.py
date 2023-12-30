@@ -1,6 +1,7 @@
 import pygame
 import pygame_menu as pm
 
+from time import sleep
 import sys
 
 from random import randint
@@ -161,6 +162,7 @@ class Food():
 class SnakeHead(pygame.Rect):
     def __init__(self, settings, x_pos, y_pos):
         self.settings = settings
+
         self.head = pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)
         self.img_original = pygame.image.load("".join([settings.assets_location, "head.png"]))
         self.img_original.convert()
@@ -176,13 +178,87 @@ class SnakeHead(pygame.Rect):
         elif y_step == self.settings.cell_size:
             self.img = pygame.transform.rotate(self.img_original, 270)
 
+    def move_ip(self, x, y):
+        self.head.move_ip(x, y)
+
+    @property
+    def top(self):
+        return self.head.top
+
+    @property
+    def left(self):
+        return self.head.left
+
+    @property
+    def right(self):
+        return self.head.right
+
+    @property
+    def bottom(self):
+        return self.head.bottom
+
+    @property
+    def midtop(self):
+        return self.head.midtop
+
+    @property
+    def midleft(self):
+        return self.head.midleft
+
+    @property
+    def midright(self):
+        return self.head.midright
+
+    @property
+    def midbottom(self):
+        return self.head.midbottom
+
 class SnakeBody(pygame.Rect):
 
     def __init__(self, settings, x_pos, y_pos):
         self.settings = settings
-        self.body_block = pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)
+        self.body = [pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)]
 
+        self.img_original = pygame.image.load("".join([settings.assets_location, "Body Straight.png"]))
+        self.img_original.convert()
+        self.img = self.img_original.copy()
+        self.grow = False
 
+    def draw(self, screen, head):
+        for i, body_block in enumerate(self.body):
+            if i == 0:
+                prior_block = head
+            elif len(self.body) > 1:
+                prior_block = self.body[i-1]
+
+            if body_block.midbottom == prior_block.midtop:
+                self.rotate(90)
+            elif body_block.midright == prior_block.midleft:
+                self.rotate(0)
+            elif body_block.midleft == prior_block.midright:
+                self.rotate(180)
+            elif body_block.midtop == prior_block.midbottom:
+                self.rotate(270)
+
+            screen.blit(self.img, body_block)
+
+    def move(self, head):
+        body_new = []
+        for i, block in enumerate(reversed(self.body)):
+            if (i == 0) & self.grow:
+                body_new.append(block.copy())
+                self.grow = False
+            if i == len(self.body) - 1:
+                block.move_ip(head.left-block.left, head.top-block.top)
+            else:
+                block.move_ip(self.body[-i-2].left-block.left, self.body[-i-2].top-block.top)
+
+            body_new.append(block)
+
+        self.body = list(reversed(body_new))
+
+    def rotate(self, angle):
+        self.img = pygame.transform.rotate(self.img_original, angle)
 
 def play_game():
     """Displays and updates game screen. Contains all game logic.
@@ -202,10 +278,7 @@ def play_game():
     food = Food(settings)
     snake_head = SnakeHead(settings, 0+settings.cell_size, 0)
     snake_body = SnakeBody(settings, 0, 0)
-    blocks = [snake_head.head,
-             snake_body.body_block]
     font = pygame.font.SysFont("Arial", 20)
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -219,32 +292,29 @@ def play_game():
 
         screen.fill(pygame.Color("grey"))
 
-        for i, block in enumerate(reversed(blocks)):
-            if i == len(blocks) - 1:
-                block.move_ip(x_step, y_step)
-                if pygame.Rect.colliderect(snake_head.head, food.food_rect):
-                    food.update(food.generate_coordinates())
+        snake_head.move_ip(x_step, y_step)
+        if pygame.Rect.colliderect(snake_head.head, food.food_rect):
+            food.update(food.generate_coordinates())
 
-                    score += 1
+            score += 1
+            snake_body.grow = True
+            while (food.collidelist(snake_body.body) > -1) or (food.collidelist([snake_head]) > -1):
+                food.update(food.generate_coordinates())
 
-                    while food.collidelist(blocks) > -1:
-                        food.update(food.generate_coordinates())
+            # snake_body.grow(SnakeBody(settings, blocks[-1].left, blocks[-1].top))
+        elif snake_head.head.collidelist(snake_body.body) > -1:
+            show_game_over(score)
+        screen.blit(snake_head.img, snake_head.head)
 
-                    blocks.append(blocks[-1].copy())
 
-                elif block.collidelist(blocks[1:]) > -1:
-                    show_game_over(score)
-                screen.blit(snake_head.img, snake_head.head)
+        snake_body.draw(screen, snake_head)
+        snake_body.move(snake_head)
 
-            else:
-                block.move_ip(blocks[-i - 2].left - block.left, blocks[-i - 2].top - block.top)
-                pygame.draw.rect(screen, pygame.Color("brown"), block)
-                pygame.draw.rect(screen, pygame.Color("black"), block, width=2)
-            if any([block.left < 0, block.right > settings.width, block.top < 0, block.bottom > settings.height]):
-                show_game_over(score)
+        if any([snake_head.left < snake_head.right > settings.width, snake_head.top < 0, snake_head.bottom > settings.height]):
+            show_game_over(score)
 
         score_rect = pygame.draw.rect(screen, pygame.Color("orange"),
-                                      (0, settings.height, settings.width, settings.cell_size))
+                                (0, settings.height, settings.width, settings.cell_size))
 
         screen.blit(food.img, food.food_rect)
 
@@ -257,8 +327,6 @@ def play_game():
 
         pygame.display.update()
         clock.tick(settings.framerate)
-
-
 def show_settings():
     """Displays settings (uses pygame_menu module).
     """
