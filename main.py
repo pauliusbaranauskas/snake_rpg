@@ -221,8 +221,17 @@ class SnakeBody(pygame.Rect):
 
         self.img_original = pygame.image.load("".join([settings.assets_location, "Body Straight.png"]))
         self.img_original.convert()
-        self.img = self.img_original.copy()
+
+        self.img_bend_inside = pygame.image.load("".join([settings.assets_location, "Body bend inside.png"]))
+        self.img_bend_inside.convert()
+        self.img_bend_outside = pygame.image.load("".join([settings.assets_location, "Body bend outside.png"]))
+        self.img_bend_outside.convert()
+
+        self.img_tail = pygame.image.load("".join([settings.assets_location, "Body end.png"]))
+        self.img_tail.convert()
         self.grow = False
+
+
 
     def draw(self, screen, head):
         for i, body_block in enumerate(self.body):
@@ -231,16 +240,63 @@ class SnakeBody(pygame.Rect):
             elif len(self.body) > 1:
                 prior_block = self.body[i-1]
 
-            if body_block.midbottom == prior_block.midtop:
-                self.rotate(90)
-            elif body_block.midright == prior_block.midleft:
-                self.rotate(0)
-            elif body_block.midleft == prior_block.midright:
-                self.rotate(180)
-            elif body_block.midtop == prior_block.midbottom:
-                self.rotate(270)
+            if len(self.body)-1 == i:
+                image = self.img_tail.copy()
 
-            screen.blit(self.img, body_block)
+                if body_block.midbottom == prior_block.midtop:
+                    image = pygame.transform.rotate(image, 270)
+                elif body_block.midleft == prior_block.midright:
+                    image = pygame.transform.rotate(image, 180)
+                elif body_block.midtop == prior_block.midbottom:
+                    image = pygame.transform.rotate(image, 90)
+
+            elif (body_block.midbottom == prior_block.midtop) & (body_block.midtop == self.body[i+1].midbottom):
+                image = self.img_original.copy()
+                image = pygame.transform.rotate(image, 90)
+            elif (body_block.midtop == prior_block.midbottom) & (body_block.midbottom == self.body[i+1].midtop):
+                image = self.img_original.copy()
+                image = pygame.transform.rotate(image, 270)
+            elif (body_block.midleft == prior_block.midright) & (body_block.midright == self.body[i+1].midleft):
+                image = self.img_original.copy()
+            elif (body_block.midright == prior_block.midleft) & (body_block.midleft == self.body[i+1].midright):
+                image = self.img_original.copy()
+                image = pygame.transform.rotate(image, 180)
+            else:
+                next_block = self.body[i+1]
+                if body_block.midbottom == prior_block.midtop:
+                    if body_block.midleft == next_block.midright:
+                        image = self.img_bend_inside.copy()
+                    elif body_block.midright == next_block.midleft:
+                        image = self.img_bend_outside.copy()
+                        image = pygame.transform.rotate(image, 90)
+
+                elif body_block.midleft == prior_block.midright:
+                    if body_block.midtop == next_block.midbottom:
+                        image = self.img_bend_inside.copy()
+                        image = pygame.transform.rotate(image, -90)
+                    elif body_block.midbottom == next_block.midtop:
+                        image = self.img_bend_outside.copy()
+
+                elif body_block.midtop == prior_block.midbottom:
+                    if body_block.midright == next_block.midleft:
+                        image = self.img_bend_inside.copy()
+                        image = pygame.transform.rotate(image, 180)
+                    elif body_block.midleft == next_block.midright:
+                        image = self.img_bend_outside.copy()
+                        image = pygame.transform.rotate(image, -90)
+
+
+                else:
+                    if body_block.midbottom == next_block.midtop:
+                        image = self.img_bend_inside.copy()
+                        image = pygame.transform.rotate(image, 90)
+                    else:
+                        image = self.img_bend_outside.copy()
+                        image = pygame.transform.rotate(image, 180)
+
+
+
+            screen.blit(image, body_block)
 
     def move(self, head):
         body_new = []
@@ -256,9 +312,6 @@ class SnakeBody(pygame.Rect):
             body_new.append(block)
 
         self.body = list(reversed(body_new))
-
-    def rotate(self, angle):
-        self.img = pygame.transform.rotate(self.img_original, angle)
 
 def play_game():
     """Displays and updates game screen. Contains all game logic.
@@ -301,7 +354,6 @@ def play_game():
             while (food.collidelist(snake_body.body) > -1) or (food.collidelist([snake_head]) > -1):
                 food.update(food.generate_coordinates())
 
-            # snake_body.grow(SnakeBody(settings, blocks[-1].left, blocks[-1].top))
         elif snake_head.head.collidelist(snake_body.body) > -1:
             show_game_over(score)
         screen.blit(snake_head.img, snake_head.head)
@@ -310,7 +362,7 @@ def play_game():
         snake_body.draw(screen, snake_head)
         snake_body.move(snake_head)
 
-        if any([snake_head.left < snake_head.right > settings.width, snake_head.top < 0, snake_head.bottom > settings.height]):
+        if any([snake_head.left < snake_head.right > settings.width, snake_head.top < 0, snake_head.bottom > settings.height, snake_head.left < 0]):
             show_game_over(score)
 
         score_rect = pygame.draw.rect(screen, pygame.Color("orange"),
@@ -405,4 +457,4 @@ def show_game_over(score):
 
 pygame.init()
 
-play_game()
+show_main_menu()
