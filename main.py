@@ -139,6 +139,8 @@ class Settings():
 
 
 class Food():
+    """A class that represent a food item that the snake is eating.
+    """
     def __init__(self, settings):
         self.cell_number = settings.cell_number
         self.cell_size = settings.cell_size
@@ -147,19 +149,39 @@ class Food():
         self.img.convert()
 
     def generate_coordinates(self):
+        """Generates new coordinates for food rectangle.
+
+        Returns:
+            tuple: New coordinates that can be used to move food rectangle.
+        """
         return randint(0, self.cell_number - 1) * self.cell_size, \
             randint(0, self.cell_number - 1) * self.cell_size, \
             self.cell_size, \
             self.cell_size
 
     def update(self, *args, **kwargs):
+        """Updates location of food rectangle.
+        """
         self.food_rect.update(*args, **kwargs)
 
     def collidelist(self, rectangles):
+        """Redirects to pygame.rect.collidelist method that can be used to check
+        if a list of rectangles overlap.
+
+        Args:
+            rectangles (list): List of rectangles to check overlap.
+
+        Returns:
+            list: List of indices that represent positions of rectangles that
+            overlap with self rectangle.
+        """
         return self.food_rect.collidelist(rectangles)
 
 
 class SnakeHead(pygame.Rect):
+    """Class object for snake head rectangle.
+    Inherits pygame.Rect class.
+    """
     def __init__(self, settings, x_pos, y_pos):
         self.settings = settings
 
@@ -169,6 +191,12 @@ class SnakeHead(pygame.Rect):
         self.img = self.img_original.copy()
 
     def rotate(self, x_step, y_step):
+        """Rotates snake's head depending on direction that it should be moving to.
+
+        Args:
+            x_step (int): Speed on X axis.
+            y_step (int): Speed on Y axis.
+        """
         if x_step == self.settings.cell_size:
             self.img = self.img_original.copy()
         elif x_step == -self.settings.cell_size:
@@ -179,6 +207,12 @@ class SnakeHead(pygame.Rect):
             self.img = pygame.transform.rotate(self.img_original, 270)
 
     def move_ip(self, x, y):
+        """Redirects to pygame.rect.move_ip method to change coordinates of the snake head.
+
+        Args:
+            x (int): New horizontal coordinates.
+            y (int): New vertical coordinates.
+        """
         self.head.move_ip(x, y)
 
     @property
@@ -214,7 +248,9 @@ class SnakeHead(pygame.Rect):
         return self.head.midbottom
 
 class SnakeBody(pygame.Rect):
-
+    """Class object for snake body structure. Each block is pygame.Rect object.
+    Inherits pygame.Rect class.
+    """
     def __init__(self, settings, x_pos, y_pos):
         self.settings = settings
         self.body = [pygame.Rect(x_pos, y_pos, self.settings.cell_size, self.settings.cell_size)]
@@ -234,6 +270,12 @@ class SnakeBody(pygame.Rect):
 
 
     def draw(self, screen, head):
+        """Displays snake's body. Excluding head.
+
+        Args:
+            screen (pygame.display): Mandatory parameter for pygame.
+            head (head): Snake's Head object that represents snake's head's rectangle.
+        """
         for i, body_block in enumerate(self.body):
             if i == 0:
                 prior_block = head
@@ -299,6 +341,11 @@ class SnakeBody(pygame.Rect):
             screen.blit(image, body_block)
 
     def move(self, head):
+        """Updates snake's body's coordinates following snake's head's path.
+
+        Args:
+            head (Head): Snake's head object representing snake's body.
+        """
         body_new = []
         for i, block in enumerate(reversed(self.body)):
             if (i == 0) & self.grow:
