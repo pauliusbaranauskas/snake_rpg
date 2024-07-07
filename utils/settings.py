@@ -23,6 +23,9 @@ class Settings():
         assets_location = file_path.copy()
         assets_location.extend(["assets", ""])
         self.assets_location = sep.join(assets_location)
+        maps_location = file_path.copy()
+        maps_location.extend(["maps", ""])
+        self.maps_location = sep.join(maps_location)
         file_path.append("snake settings.json")
         self.file_path = sep.join(file_path)
 

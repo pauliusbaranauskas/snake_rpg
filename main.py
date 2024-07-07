@@ -2,17 +2,15 @@ import pygame
 import pygame_menu as pm
 
 from random import randint
-import json
-
-import os
-
 from utils.settings import Settings
+from utils.mapping import GameMap
+
 def direction(event, cell_size, x_step, y_step):
     """Updates snake movement direction by arrow button clicks.
 
     Args:
         event (pygame.event): Pygame event object.
-        cell_size (int): Size of cell. It describe step size.
+        cell_size (int): Size of cell. It describes step size.
         x_step (int): Current snake movement speed in horizontal direction.
         y_step (int): Current snake movement speed in vertical direction.
 
@@ -280,9 +278,10 @@ def play_game():
     screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
 
     food = Food(settings)
-    snake_head = SnakeHead(settings, 0+settings.cell_size, 0)
-    snake_body = SnakeBody(settings, 0, 0)
+    snake_head = SnakeHead(settings, 0+settings.cell_size*2, settings.cell_size)
+    snake_body = SnakeBody(settings, 0+settings.cell_size, settings.cell_size)
     font = pygame.font.SysFont("Arial", 20)
+    game_map = GameMap(settings, "map1")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -295,14 +294,16 @@ def play_game():
                     show_game_over(score)
 
         screen.fill(pygame.Color("grey"))
-
+        game_map.draw_map(screen)
+        if snake_head.head.collidelist(game_map.map_tiles) > 1:
+            show_game_over(score)
         snake_head.move_ip(x_step, y_step)
         if pygame.Rect.colliderect(snake_head.head, food.food_rect):
             food.update(food.generate_coordinates())
 
             score += 1
             snake_body.grow = True
-            while (food.collidelist(snake_body.body) > -1) or (food.collidelist([snake_head]) > -1):
+            while (food.collidelist(snake_body.body) > -1) or (food.collidelist([snake_head]) > -1) or (food.collidelist(game_map.map_tiles) > -1):
                 food.update(food.generate_coordinates())
 
         elif snake_head.head.collidelist(snake_body.body) > -1:
@@ -408,4 +409,4 @@ def show_game_over(score):
 
 pygame.init()
 
-show_main_menu()
+play_game()
