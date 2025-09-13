@@ -37,6 +37,8 @@ def direction(event, cell_size, x_step, y_step):
             x_step, y_step = -1, -1
         else:
             x_step, y_step = cell_size, 0
+    elif event.key == pygame.K_ESCAPE:
+        x_step, y_step = 0, 0
 
     return x_step, y_step
 
@@ -262,6 +264,23 @@ class SnakeBody(pygame.Rect):
 
         self.body = list(reversed(body_new))
 
+def show_map_maker():
+    settings = Settings()
+
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((settings.width, settings.height + settings.cell_size))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                show_main_menu()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                show_main_menu()
+                # Exists map builder on esc key press. Does not save the map.
+        screen.fill(pygame.Color("grey"))
+        pygame.display.update()
+        clock.tick(settings.framerate)
+
 def play_game():
     """Displays and updates game screen. Contains all game logic.
 
@@ -374,7 +393,7 @@ def show_main_menu():
     main_menu.add.label("")
 
     main_menu.add.button(title="PLAY", action=play_game)
-
+    main_menu.add.button(title="Map Maker", action=show_map_maker)
     main_menu.add.button(title="Settings", action=show_settings)
     main_menu.add.button(title="Quit", action=pm.events.EXIT)
 
